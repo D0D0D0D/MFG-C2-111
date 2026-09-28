@@ -1,0 +1,42 @@
+# Runtime configuration — MFG-C2-111 SupplierECNImpactBriefAgent
+# Read at graph construction time (NOT the static AgentRegistry manifest; that is config/agent.yaml).
+# Runtime-tunable params live here; static manifest keys live in agent.yaml.
+
+max_retry: 3
+timeout_s: 30
+
+# LLM cost ceiling per invocation (Stage 4-5 impact assessment + brief compose).
+# Template-user tunable initial value.
+budget_usd: 1.50
+
+# MANDATORY when hitl.enabled is true — checkpointer is required for interrupt() pause/resume
+# (ADR-016 D5; setting hitl.enabled without this raises ConfigError at compile time).
+memory_enabled: true
+
+# HITL — D6 interrupt() pattern (approved: A-3).
+# High-risk / low-confidence / data-quality-fail routes to SQE human review.
+# When hitl_allowed is False (automated GraphNode pipeline), the node MUST NOT call interrupt();
+# it returns a review-required brief instead (see docs/02_design.md Runtime Config design).
+hitl:
+  enabled: true
+  max_hitl: 8   # safety valve — max interrupt/resume cycles per session (template-user tunable)
+
+# Qdrant-backed precedent KB (opt-in). Leave this whole section commented to
+# retain the current no-store degradation. AZURE_EMBEDDING_API_KEY is resolved
+# through secrets_factory and must never be written in this file.
+# vector_store:
+#   url: "http://localhost:6333"
+#   collection_name: "mfg_c2_111_precedents"
+#   embedding_base_url: "https://example.openai.azure.com"
+#   vector_size: 1536
+#   distance: "cosine"
+#   embedding_model: "text-embedding-ada-002"
+#   embedding_api_version: "2024-02-15-preview"
+#   embedding_provider: "azure"
+#   timeout_s: 30.0
+#   write_timeout_s: 60.0
+#   max_batch_documents: 1000
+#   max_top_k: 100
+#   cache_size: 32
+#   snippet_field: "snippet"
+#   snippet_chars: 400
